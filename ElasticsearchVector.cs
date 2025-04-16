@@ -1,4 +1,5 @@
 ﻿using Elasticsearch.Net;
+using FastElasticsearch.Core.Aop;
 using FastElasticsearch.Core.Model;
 using Newtonsoft.Json;
 using System;
@@ -12,6 +13,7 @@ namespace FastElasticsearch.Core
         private static string vectorKey = "vectorKey";
         private Elasticsearch elasticsearch = ServiceContext.Engine.Resolve<Elasticsearch>();
         internal ElasticLowLevelClient client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
+        internal IAop aop = ServiceContext.Engine.Resolve<IAop>();
 
         private object VectorScript(VectorModel info, VectorQuery model)
         {
@@ -113,10 +115,17 @@ namespace FastElasticsearch.Core
             {
                 dic[keyValue.Key] = keyValue.Value;
             }
-                        
+
+            if (aop != null)
+                aop.Before(new BeforeContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(dic) });
+
             var result = client.Index<StringResponse>(elasticsearch.GetIndex(vectorIndex), Guid.NewGuid().ToString(), PostData.Serializable(dic));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(dic), Data = result });
+
             return data;
         }
 
@@ -147,6 +156,9 @@ namespace FastElasticsearch.Core
 
             param = new { mappings = new { properties = dyn } };
 
+            if (aop != null)
+                aop.Before(new BeforeContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param) });
+
             var result = client.Indices.Create<StringResponse>(elasticsearch.GetIndex(vectorIndex), PostData.Serializable(param));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -157,6 +169,9 @@ namespace FastElasticsearch.Core
                 elasticsearch.Add(vectorKey, model.Id, new Dictionary<string, object> { { vectorIndex, model } });
             }
 
+            if (aop != null)
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param), Data = result });
+
             return data;
         }
 
@@ -164,6 +179,10 @@ namespace FastElasticsearch.Core
         {
             var result = new EsResponse();
             var param = VectorParam(vectorIndex, model);
+
+            if (aop != null)
+                aop.Before(new BeforeContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param) });
+
             var stringResponse = client.Search<StringResponse>(elasticsearch.GetIndex(vectorIndex), PostData.Serializable(param));
             if (stringResponse.Success)
             {
@@ -177,19 +196,22 @@ namespace FastElasticsearch.Core
                 {
                     result.List.Add(a._source);
                 });
-
-                return result;
             }
             else
-            {
                 result.Exception = stringResponse.OriginalException;
-                return result;
-            }
+
+            if (aop != null)
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param), Data = stringResponse });
+
+            return result;
         }
 
         public EsResponse DeleteVector(string vectorIndex)
         {
             var data = new EsResponse();
+            if (aop != null)
+                aop.Before(new BeforeContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex) });
+
             var result = client.Indices.Delete<StringResponse>(elasticsearch.GetIndex(vectorIndex));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -199,6 +221,9 @@ namespace FastElasticsearch.Core
                 var info = GetVectorInfo(vectorIndex);
                 elasticsearch.Delete(vectorKey, new List<string> { info.Id });
             }
+
+            if (aop != null)
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Data = result });
             return data;
         }
     }

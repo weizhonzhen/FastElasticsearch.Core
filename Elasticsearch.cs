@@ -1,8 +1,10 @@
 ﻿using Elasticsearch.Net;
+using FastElasticsearch.Core.Aop;
 using FastElasticsearch.Core.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Dynamic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,6 +15,7 @@ namespace FastElasticsearch.Core
     {
         internal static List<char> filters = new List<char> { '\\', '/', '*', '?', '\"', '<', '>', '|', ' ', '#', '%', '{', '}', ':', '@', '&', '=' };
         internal ElasticLowLevelClient client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
+        internal IAop aop = ServiceContext.Engine.Resolve<IAop>();
 
         public EsResponse Count(string index)
         {
@@ -47,6 +50,10 @@ namespace FastElasticsearch.Core
         {
             var data = new EsResponse();
             var param = new DeleteByQueryRequestParameters { Conflicts = Conflicts.Proceed, Refresh = true };
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query }) });
+
             var result = client.DeleteByQuery<StringResponse>(GetIndex(index), PostData.Serializable(new { query = query }), param);
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -56,6 +63,10 @@ namespace FastElasticsearch.Core
                 var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(result.Body);
                 data.DeleteCount = int.Parse(dic.GetValue("deleted").ToString());
             }
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query }), Data = result });
+
             return data;
         }
 
@@ -63,6 +74,10 @@ namespace FastElasticsearch.Core
         {
             var data = new EsResponse();
             var param = new DeleteByQueryRequestParameters { Conflicts = Conflicts.Proceed, Refresh = true };
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = new { match_all = new { } } }) });
+
             var result = client.DeleteByQuery<StringResponse>(GetIndex(index), PostData.Serializable(new { query = new { match_all = new { } } }), param);
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -72,13 +87,21 @@ namespace FastElasticsearch.Core
                 var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(result.Body);
                 data.DeleteCount = int.Parse(dic.GetValue("deleted").ToString());
             }
-            return data; ;
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = new { match_all = new { } } }), Data = result });
+
+            return data;
         }
 
         public EsResponse Delete(string index, List<string> _id)
         {
             var data = new EsResponse();
             var param = new DeleteByQueryRequestParameters { Conflicts = Conflicts.Proceed, Refresh = true };
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = new { terms = new { _id } } }) });
+
             var result = client.DeleteByQuery<StringResponse>(GetIndex(index), PostData.Serializable(new { query = new { terms = new { _id } } }), param);
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -88,6 +111,10 @@ namespace FastElasticsearch.Core
                 var dic = JsonConvert.DeserializeObject<Dictionary<string, object>>(result.Body);
                 data.DeleteCount = int.Parse(dic.GetValue("deleted").ToString());
             }
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = new { terms = new { _id } } }), Data = result });
+
             return data;
         }
 
@@ -99,9 +126,17 @@ namespace FastElasticsearch.Core
         public EsResponse Add(string index, string _id, Dictionary<string, object> model)
         {
             var data = new EsResponse();
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index) });
+
             var result = client.Index<StringResponse>(GetIndex(index), _id, PostData.Serializable(model));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Data = result });
+
             return data;
         }
 
@@ -127,9 +162,16 @@ namespace FastElasticsearch.Core
                 param.Add(dic);
             }
 
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param)});
+
             var result = client.Bulk<StringResponse>(GetIndex(index), PostData.MultiJson(param), bulkParam);
             reponse.IsSuccess = result != null ? result.Success : false;
             reponse.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param), Data = result });
+
             return reponse;
         }
 
@@ -173,6 +215,9 @@ namespace FastElasticsearch.Core
             var data = new Dictionary<string, object>();
             StringResponse page;
 
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }) });
+
             if (!string.IsNullOrEmpty(GetIndex(index)))
                 page = client.Search<StringResponse>(GetIndex(index), PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
             else
@@ -206,6 +251,9 @@ namespace FastElasticsearch.Core
 
             if (result.PageResult.Page.PageId > result.PageResult.Page.TotalPage)
                 result.PageResult.Page.PageId = result.PageResult.Page.TotalPage;
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }), Data = result });
 
             return result;
         }
@@ -243,10 +291,14 @@ namespace FastElasticsearch.Core
         {
             var result = new EsResponse();
             StringResponse stringResponse;
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query, size = size, sort = sort })});
+
             if (!string.IsNullOrEmpty(index))
                 stringResponse = client.Search<StringResponse>(GetIndex(index), PostData.Serializable(new { query = query, size = size, sort = sort }));
             else
-                stringResponse = client.Search<StringResponse>(PostData.Serializable(new { query = query, size = size }));
+                stringResponse = client.Search<StringResponse>(PostData.Serializable(new { query = query, size = size, sort = sort }));
             if (stringResponse.Success)
             {
                 result.IsSuccess = true;
@@ -259,14 +311,14 @@ namespace FastElasticsearch.Core
                 {
                     result.List.Add(a._source);
                 });
-
-                return result;
             }
             else
-            {
                 result.Exception = stringResponse.OriginalException;
-                return result;
-            }
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query, size = size, sort = sort }), Data = result });
+
+            return result;
         }
 
         public EsResponse GetList(string index, QueryModel query, int size = 10)
@@ -336,11 +388,18 @@ namespace FastElasticsearch.Core
             var data = new EsResponse();
             var param = new UpdateRequestParameters { Refresh = Refresh.True };
 
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { doc = doc }) });
+
             var result = client.Update<StringResponse>(GetIndex(index), _id, PostData.Serializable(new { doc = doc }), param);
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
             if (data.IsSuccess)
                 data.UpdateCount = 1;
+
+            if (aop != null)
+                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { doc = doc }), Data = result });
+
             return data;
         }
 

@@ -1,5 +1,6 @@
 ﻿using Elasticsearch.Net;
 using FastElasticsearch.Core;
+using FastElasticsearch.Core.Aop;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
@@ -32,11 +33,14 @@ namespace Microsoft.Extensions.DependencyInjection
             serviceCollection.AddSingleton<IElasticsearchVector, FastElasticsearch.Core.ElasticsearchVector>();
             serviceCollection.AddSingleton<FastElasticsearch.Core.ElasticsearchVector>();
 
+            if (config.Aop != null)
+                serviceCollection.AddSingleton<IAop>(config.Aop);
+
             ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
             return serviceCollection;
         }
 
-        public static IServiceCollection AddFastElasticsearch(this IServiceCollection serviceCollection, string dbFile = "db.json")
+        public static IServiceCollection AddFastElasticsearch(this IServiceCollection serviceCollection, string dbFile = "db.json", IAop aop = null)
         {
             var build = new ConfigurationBuilder();
             build.SetBasePath(Directory.GetCurrentDirectory());
@@ -55,6 +59,9 @@ namespace Microsoft.Extensions.DependencyInjection
             serviceCollection.AddScoped<FastElasticsearch.Core.Elasticsearch>();
             serviceCollection.AddSingleton<IElasticsearchVector, FastElasticsearch.Core.ElasticsearchVector>();
             serviceCollection.AddSingleton<FastElasticsearch.Core.ElasticsearchVector>();
+
+            if (aop != null)
+                serviceCollection.AddSingleton<IAop>(aop);
 
             ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
             return serviceCollection;
