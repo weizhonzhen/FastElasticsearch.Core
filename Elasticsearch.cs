@@ -65,7 +65,14 @@ namespace FastElasticsearch.Core
             }
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query }), Data = result, IsSuccess = data.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new { query = query }),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
 
             return data;
         }
@@ -89,7 +96,14 @@ namespace FastElasticsearch.Core
             }
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = new { match_all = new { } } }), Data = result, IsSuccess = data.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new { query = new { match_all = new { } } }),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
 
             return data;
         }
@@ -113,7 +127,14 @@ namespace FastElasticsearch.Core
             }
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = new { terms = new { _id } } }), Data = result, IsSuccess = data.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new { query = new { terms = new { _id } } }),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
 
             return data;
         }
@@ -135,7 +156,13 @@ namespace FastElasticsearch.Core
             data.Exception = result?.OriginalException;
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Data = result, IsSuccess = data.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
 
             return data;
         }
@@ -170,7 +197,14 @@ namespace FastElasticsearch.Core
             reponse.Exception = result?.OriginalException;
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param), Data = result, IsSuccess = reponse.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(param),
+                    Data = result,
+                    IsSuccess = reponse.IsSuccess,
+                    Exception = reponse.Exception
+                });
 
             return reponse;
         }
@@ -253,7 +287,20 @@ namespace FastElasticsearch.Core
                 result.PageResult.Page.PageId = result.PageResult.Page.TotalPage;
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }), Data = result, IsSuccess = result.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new
+                    {
+                        size = pageSize,
+                        from = (pageId - 1) * pageSize,
+                        query = query,
+                        sort = sort
+                    }),
+                    Data = result,
+                    IsSuccess = result.IsSuccess,
+                    Exception = result.Exception
+                });
 
             return result;
         }
@@ -316,7 +363,14 @@ namespace FastElasticsearch.Core
                 result.Exception = stringResponse.OriginalException;
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query, size = size, sort = sort }), Data = result, IsSuccess = result.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new { query = query, size = size, sort = sort }),
+                    Data = result,
+                    IsSuccess = result.IsSuccess,
+                    Exception = result.Exception
+                });
 
             return result;
         }
@@ -398,7 +452,14 @@ namespace FastElasticsearch.Core
                 data.UpdateCount = 1;
 
             if (aop != null)
-                aop.After(new AfterContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { doc = doc }), Data = result, IsSuccess = data.IsSuccess });
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new { doc = doc }),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
 
             return data;
         }
