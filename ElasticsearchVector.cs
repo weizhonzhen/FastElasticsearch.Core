@@ -124,7 +124,7 @@ namespace FastElasticsearch.Core
             data.Exception = result?.OriginalException;
 
             if (aop != null)
-                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(dic), Data = result });
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(dic), Data = result, IsSuccess = data.IsSuccess });
 
             return data;
         }
@@ -170,7 +170,7 @@ namespace FastElasticsearch.Core
             }
 
             if (aop != null)
-                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param), Data = result });
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param), Data = result, IsSuccess = data.IsSuccess });
 
             return data;
         }
@@ -201,7 +201,7 @@ namespace FastElasticsearch.Core
                 result.Exception = stringResponse.OriginalException;
 
             if (aop != null)
-                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param), Data = stringResponse });
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Dsl = JsonConvert.SerializeObject(param), Data = stringResponse, IsSuccess = result.IsSuccess });
 
             return result;
         }
@@ -223,7 +223,7 @@ namespace FastElasticsearch.Core
             }
 
             if (aop != null)
-                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Data = result });
+                aop.After(new AfterContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex), Data = result, IsSuccess = data.IsSuccess });
             return data;
         }
     }
