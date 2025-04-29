@@ -62,8 +62,8 @@ namespace FastElasticsearch.Core
 
         private VectorModel GetVectorInfo(string vectorIndex)
         {
-            var vectorList = elasticsearch.GetList(vectorKey, new { match_all = new { } }, null, 100).List ?? new List<Dictionary<string, object>>();
-            var vectorInfo = vectorList.Find(a => a.ContainsKey(vectorIndex.ToString())) ?? new Dictionary<string, object>();
+            var vectorList = elasticsearch.GetList(vectorKey, new { match_all = new { } }, null, 100).ListResult ?? new ListResult();
+            var vectorInfo = vectorList.List.Find(a => a.ContainsKey(vectorIndex.ToString())) ?? new Dictionary<string, object>();
             return JsonConvert.DeserializeObject<VectorModel>(vectorInfo.GetValue(vectorIndex).ToString()) ?? new VectorModel();
         }
 
@@ -210,7 +210,9 @@ namespace FastElasticsearch.Core
                 var list = JsonConvert.DeserializeObject<EsResult>(body);
                 list.hits.hits.ForEach(a =>
                 {
-                    result.List.Add(a._source);
+                    result.ListResult.Id = a._id;
+                    result.ListResult.Index = a._index;
+                    result.ListResult.List.Add(a._source);
                 });
             }
             else

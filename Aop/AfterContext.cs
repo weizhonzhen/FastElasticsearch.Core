@@ -1,4 +1,6 @@
-﻿namespace FastElasticsearch.Core.Aop
+﻿using System;
+
+namespace FastElasticsearch.Core.Aop
 {
     public class AfterContext
     {
@@ -9,5 +11,9 @@
         public bool IsVector { get; set; }
 
         public object Data { get; set; }
+
+        public bool IsSuccess { get; set; }
+
+        public Exception Exception { get; set; }
     }
 }
