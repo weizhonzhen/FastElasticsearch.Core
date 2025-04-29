@@ -283,8 +283,8 @@ namespace FastElasticsearch.Core
 
                 list.hits.hits.ForEach(a =>
                 {
-                    result.PageResult.Id = a._id;
-                    result.PageResult.Index = a._index;
+                    a._source.Add("_id", a._id);
+                    a._source.Add("_index", a._index);
                     result.PageResult.List.Add(a._source);
                 });
 
@@ -383,9 +383,9 @@ namespace FastElasticsearch.Core
                 var list = JsonConvert.DeserializeObject<EsResult>(body);
                 list.hits.hits.ForEach(a =>
                 {
-                    result.ListResult.Id = a._id;
-                    result.ListResult.Index = a._index;
-                    result.ListResult.List.Add(a._source);
+                    a._source.Add("_id", a._id);
+                    a._source.Add("_index", a._index);
+                    result.List.Add(a._source);
                 });
             }
             else

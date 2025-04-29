@@ -7,10 +7,6 @@ namespace FastElasticsearch.Core.Model
     {
         public PageModel Page = new PageModel();
 
-        public string Id { get; set; }
-
-        public string Index { get; set; }
-
         public List<Dictionary<string, object>> List { get; set; } = new List<Dictionary<string, object>>();
     }
 
@@ -25,14 +21,6 @@ namespace FastElasticsearch.Core.Model
         public int PageSize { get; set; } = 10;
     }
 
-    public class ListResult
-    {
-        public List<Dictionary<string, object>> List { get; set; } = new List<Dictionary<string, object>>();
-
-        public string Id { get; set; }
-
-        public string Index { get; set; }
-    }
 
     public class EsResponse
     {
@@ -42,7 +30,7 @@ namespace FastElasticsearch.Core.Model
 
         public PageResult PageResult { get; set; } = new PageResult();
 
-        public ListResult ListResult { get; set; } = new ListResult();
+        public List<Dictionary<string, object>> List { get; set; } = new List<Dictionary<string, object>>();
 
         public int Count {  get; set; }
 
