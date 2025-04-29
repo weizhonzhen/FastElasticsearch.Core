@@ -133,7 +133,7 @@ namespace FastElasticsearch.Core
         {
             var info = GetVectorInfo(vectorIndex);
 
-            if (info.Name == model.Name)
+            if (info.Name == model.Name && info.Name != null)
                 return new EsResponse();
 
             var data = new EsResponse();
