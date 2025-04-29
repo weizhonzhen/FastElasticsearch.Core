@@ -30,7 +30,17 @@ namespace FastElasticsearch.Core
         /// </summary>
         EsResponse Page(int pageSize, int pageId, string index, object query, object sort);
 
+        /// <summary>
+        ///  query: new { match_all = new { } }
+        ///  query: new { wildcard = new { field= value* } }
+        ///  query: new { match = new { field= value } }
+        ///  sort: new []{ new { filed = new { order = desc}}}
+        /// </summary>
+        EsResponse Page(int pageSize, int pageId, List<string> index, object query, object sort);
+
         EsResponse Page(int pageSize, int pageId, string index, QueryModel query);
+
+        EsResponse Page(int pageSize, int pageId, List<string> index, QueryModel query);
 
         EsResponse Count(string index);
 
@@ -42,7 +52,11 @@ namespace FastElasticsearch.Core
         /// </summary>
         EsResponse GetList(string index, object query, object sort, int size = 10);
 
+        EsResponse GetList(List<string> index, object query, object sort, int size = 10);
+
         EsResponse GetList(string index, QueryModel query, int size = 10);
+
+        EsResponse GetList(List<string> index, QueryModel query, int size = 10);
 
         /// <summary>
         ///  query : new { term = new { field = value }

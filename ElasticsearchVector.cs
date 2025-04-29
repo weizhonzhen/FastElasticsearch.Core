@@ -111,7 +111,7 @@ namespace FastElasticsearch.Core
             var dic = (IDictionary<string, object>)dyn;
 
             dic[info.Name] = model.Data;
-            foreach (var keyValue in model.Filed)
+            foreach (var keyValue in model.Field)
             {
                 dic[keyValue.Key] = keyValue.Value;
             }

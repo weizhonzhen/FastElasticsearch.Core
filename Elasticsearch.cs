@@ -217,6 +217,21 @@ namespace FastElasticsearch.Core
                 return new string(index.ToLower().Where(c => !filters.Contains(c)).ToArray());
         }
 
+        internal string GetIndexs(List<string> index)
+        {
+            if (index == null || index.Count == 0)
+                return string.Empty;
+            else
+            {
+                var list = new List<string>();
+                index.ForEach(a =>
+                {
+                    list.Add(new string(a.ToLower().Where(c => !filters.Contains(c)).ToArray()));
+                });
+                return string.Join(",", list);
+            }
+        }
+
         public EsResponse Delete(string index, QueryModel query)
         {
             var data = new EsResponse();
@@ -305,6 +320,11 @@ namespace FastElasticsearch.Core
             return result;
         }
 
+        public EsResponse Page(int pageSize, int pageId, List<string> index, object query, object sort)
+        {
+            return Page(pageSize, pageId, GetIndexs(index), query, sort);
+        }
+
         public EsResponse Page(int pageSize, int pageId, string index, QueryModel query)
         {
             var param = new Dictionary<string, object>();
@@ -326,6 +346,11 @@ namespace FastElasticsearch.Core
                 param.Add("match_all", new { });
 
             return Page(pageSize, pageId, index, param, sort);
+        }
+
+        public EsResponse Page(int pageSize, int pageId, List<string> index, QueryModel query)
+        {
+            return Page(pageSize, pageId, GetIndexs(index), query);
         }
 
         /// <summary>
@@ -375,6 +400,11 @@ namespace FastElasticsearch.Core
             return result;
         }
 
+        public EsResponse GetList(List<string> index, object query, object sort, int size = 10)
+        {
+            return GetList(GetIndexs(index), query, sort, size);
+        }
+
         public EsResponse GetList(string index, QueryModel query, int size = 10)
         {
             var param = new Dictionary<string, object>();
@@ -396,6 +426,11 @@ namespace FastElasticsearch.Core
                 param.Add("match_all", new { });
 
             return GetList(index, param, sort, size);
+        }
+
+        public EsResponse GetList(List<string> index, QueryModel query, int size = 10)
+        {
+            return GetList(GetIndexs(index), query, size);
         }
 
         /// <summary>
