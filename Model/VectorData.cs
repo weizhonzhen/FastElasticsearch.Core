@@ -6,6 +6,6 @@ namespace FastElasticsearch.Core.Model
     {
         public float[] Data { get; set; }
 
-        public Dictionary<string, object> Filed { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Field { get; set; } = new Dictionary<string, object>();
     }
 }
