@@ -75,6 +75,8 @@ namespace FastElasticsearch.Core
         EsResponse Update(string index, string _id, object doc);
 
         EsResponse Update(string index, string _id, UpdateModel query);
+
+        EsResponse GetItem(string index,string _id);
     }
 
     public interface IElasticsearchVector
@@ -86,5 +88,7 @@ namespace FastElasticsearch.Core
         EsResponse AddVectorData(string vectorIndex, VectorData model);
 
         EsResponse QueryVector(string vectorIndex, VectorQuery model);
+
+        EsResponse QueryVector(List<string> vectorIndex, VectorQuery model);
     }
 }

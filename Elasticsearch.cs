@@ -571,6 +571,30 @@ namespace FastElasticsearch.Core
                 return new { term = term };
             }
         }
+
+        public EsResponse GetItem(string index, string _id)
+        {
+            var data = new EsResponse();
+            StringResponse page;
+            if (!string.IsNullOrEmpty(index))
+                page = client.Search<StringResponse>(GetIndex(index), PostData.Serializable(new { id = _id }));
+            else
+                page = client.Search<StringResponse>(PostData.Empty);
+
+            data.IsSuccess = page.Success;
+            data.Exception = page.OriginalException;
+
+            if (page.Success)
+            {
+                var list = JsonConvert.DeserializeObject<EsResult>(page.Body);
+
+                data.Count = list.hits.total.value;
+            }
+            else
+                data.Count = 0;
+
+            return data;
+        }
     }
 }
 

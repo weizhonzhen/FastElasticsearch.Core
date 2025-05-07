@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 
 namespace FastElasticsearch.Core
 {
@@ -258,6 +259,23 @@ namespace FastElasticsearch.Core
                     Exception = data.Exception
                 });
             return data;
+        }
+
+        public EsResponse QueryVector(List<string> vectorIndex, VectorQuery model)
+        {
+            var result = new EsResponse();
+
+            vectorIndex.ForEach(a =>
+            {
+                var info = QueryVector(elasticsearch.GetIndex(a), model);
+                if (info.IsSuccess && info.List.Count > 0)
+                {
+                    result.IsSuccess = true;
+                    result.List.AddRange(info.List);
+                }
+            });
+
+            return result;
         }
     }
 }
