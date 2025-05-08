@@ -240,8 +240,13 @@ namespace FastElasticsearch.Core
             if (query == null)
                 return data;
 
+            var match = query.IsPhrase ? "match_phrase" : "match";
+
             if (query.Match != null && query.Match.Count > 0)
-                param.Add(query.Match.Count == 1 ? "match" : "bool", Match(query.Match));
+                param.Add(query.Match.Count == 1 ? match : "bool", Match(query.Match));
+
+            if (query.Match != null && query.Match.Count > 0)
+                param.Add(query.Match.Count == 1 ? match : "bool", Match(query.Match));
 
             if (query.Wildcard != null && query.Wildcard.Count > 0)
                 param.Add("wildcard", Wildcard(query.Wildcard));
@@ -335,8 +340,10 @@ namespace FastElasticsearch.Core
             if (query == null)
                 return new EsResponse();
 
+            var match = query.IsPhrase ? "match_phrase" : "match";
+
             if (query.Match != null && query.Match.Count > 0)
-                param.Add(query.Match.Count == 1 ? "match" : "bool", Match(query.Match));
+                param.Add(query.Match.Count == 1 ? match : "bool", Match(query.Match));
 
             if (query.Wildcard != null && query.Wildcard.Count > 0)
                 param.Add("wildcard", Wildcard(query.Wildcard));
@@ -417,8 +424,10 @@ namespace FastElasticsearch.Core
             if (query == null)
                 return new EsResponse();
 
+            var match = query.IsPhrase ? "match_phrase" : "match";
+
             if (query.Match != null && query.Match.Count > 0)
-                param.Add(query.Match.Count == 1 ? "match" : "bool", Match(query.Match));
+                param.Add(query.Match.Count == 1 ? match : "bool", Match(query.Match));
 
             if (query.Wildcard != null && query.Wildcard.Count > 0)
                 param.Add("wildcard", Wildcard(query.Wildcard));
