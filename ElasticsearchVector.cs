@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace FastElasticsearch.Core
 {
@@ -87,7 +88,7 @@ namespace FastElasticsearch.Core
                 {
                     matchDic[item.Key] = new { query = item.Value ,boost = model.MachBoost};
                 }
-                dic["match"] = matchDyn;
+                dic["match_phrase"] = matchDyn;
 
                 dynamic filterDyn = new ExpandoObject();
                 var filterDic = (IDictionary<string, object>)filterDyn;
