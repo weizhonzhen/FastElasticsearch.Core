@@ -78,27 +78,25 @@ namespace FastElasticsearch.Core
 
             if (model.Match.Count > 0)
             {
-                dynamic matchDyn = new ExpandoObject();
-                var matchDic = (IDictionary<string, object>)matchDyn;
+                dynamic termDyn = new ExpandoObject();
+                var termDic = (IDictionary<string, object>)termDyn;
                 foreach (var item in model.Match)
                 {
-                    matchDic[item.Key] = item.Value;
+                    termDic[item.Key] = new { query = item.Value ,boost = model.MachBoost};
                 }
 
-                dic["match"] = matchDyn;
+                dic["match"] = termDyn;
             }
-            else
-                dic["match_all"] = new { };
 
             dynamic knnDyn = new ExpandoObject();
             var knnDic = (IDictionary<string, object>)knnDyn;
             knnDic["field"] = info.Name;
             knnDic["query_vector"] = model.Data;
-            knnDic["k"] = model.Top;
-            knnDic["num_candidates"] = model.Total;
-            knnDic["filter"] = queryDyn;
-            
-            result = new { knn = knnDyn, fields = model.Fields};
+            knnDic["k"] = model.K;
+            knnDic["num_candidates"] = model.NumCandidates;
+            knnDic["boost"] = model.KnnBoost;
+
+            result = new { knn = knnDyn, query = queryDyn };
 
             return result;
         }
@@ -155,7 +153,13 @@ namespace FastElasticsearch.Core
                 type = model.Type,
                 dims = model.Dims,
                 index = model.Index,
-                similarity = model.Similarity.ToString()
+                similarity = model.Similarity.ToString(),
+                index_options = new
+                {
+                    type = model.IndexOption.Type.ToString(),
+                    ef_construction = model.IndexOption.Ef_Construction,
+                    m=model.IndexOption.M
+                }
             };
 
             foreach (var keyValue in model.Field)

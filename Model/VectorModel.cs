@@ -14,7 +14,7 @@ namespace FastElasticsearch.Core.Model
 
         public Similarity Similarity { get; set; } = Similarity.cosine;
 
-        //public IndexOption IndexOption { get; set; } = new IndexOption { M = 16, Ef_Construction = 100, Type = OptionType.hnsw };
+        public IndexOption IndexOption { get; set; } = new IndexOption { M = 32, Ef_Construction = 400, Type = OptionType.hnsw };
 
         public Dictionary<string, object> Field { get; set; } = new Dictionary<string, object>();
 
