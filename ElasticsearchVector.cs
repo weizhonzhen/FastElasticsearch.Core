@@ -73,23 +73,32 @@ namespace FastElasticsearch.Core
             var result = new object();
             var info = GetVectorInfo(vectorIndex);
 
+            dynamic knnDyn = new ExpandoObject();
+            var knnDic = (IDictionary<string, object>)knnDyn;
+
             dynamic queryDyn = new ExpandoObject();
             var dic = (IDictionary<string, object>)queryDyn;
 
             if (model.Match.Count > 0)
             {
-                dynamic termDyn = new ExpandoObject();
-                var termDic = (IDictionary<string, object>)termDyn;
+                dynamic matchDyn = new ExpandoObject();
+                var matchDic = (IDictionary<string, object>)matchDyn;
                 foreach (var item in model.Match)
                 {
-                    termDic[item.Key] = new { query = item.Value ,boost = model.MachBoost};
+                    matchDic[item.Key] = new { query = item.Value ,boost = model.MachBoost};
+                }
+                dic["match"] = matchDyn;
+
+                dynamic filterDyn = new ExpandoObject();
+                var filterDic = (IDictionary<string, object>)filterDyn;
+                foreach (var item in model.Match)
+                {
+                    filterDic[item.Key] = item.Value;
                 }
 
-                dic["match"] = termDyn;
+                knnDic["filter"] = new { match  = filterDyn };
             }
 
-            dynamic knnDyn = new ExpandoObject();
-            var knnDic = (IDictionary<string, object>)knnDyn;
             knnDic["field"] = info.Name;
             knnDic["query_vector"] = model.Data;
             knnDic["k"] = model.K;
