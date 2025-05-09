@@ -89,7 +89,7 @@ namespace FastElasticsearch.Core
                     matchDic[item.Key] = new { query = item.Value ,boost = model.MachBoost};
                 }
                 dic["match_phrase"] = matchDyn;
-
+                
                 dynamic filterDyn = new ExpandoObject();
                 var filterDic = (IDictionary<string, object>)filterDyn;
                 foreach (var item in model.Match)
@@ -97,7 +97,7 @@ namespace FastElasticsearch.Core
                     filterDic[item.Key] = item.Value;
                 }
 
-                knnDic["filter"] = new { match  = filterDyn };
+                knnDic["filter"] = new { match_phrase = filterDyn };
             }
 
             knnDic["field"] = info.Name;
