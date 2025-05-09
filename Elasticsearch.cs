@@ -4,7 +4,6 @@ using FastElasticsearch.Core.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Dynamic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -151,7 +150,8 @@ namespace FastElasticsearch.Core
             if (aop != null)
                 aop.Before(new BeforeContext { Index = GetIndex(index) });
 
-            var result = client.Index<StringResponse>(GetIndex(index), _id, PostData.Serializable(model));
+            var param = new IndexRequestParameters { Refresh = Refresh.True };
+            var result = client.Index<StringResponse>(GetIndex(index), _id, PostData.Serializable(model), param);
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
 
