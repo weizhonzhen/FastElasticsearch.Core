@@ -2,6 +2,7 @@
 using FastElasticsearch.Core.Aop;
 using FastElasticsearch.Core.Model;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -623,6 +624,53 @@ namespace System.Collections.Generic
                 return string.Empty;
             else
                 return item[key];
+        }
+
+        public static Dictionary<string, object> JsonToDic(string jsonValue)
+        {
+            try
+            {
+                var item = new Dictionary<string, object>();
+
+                if (string.IsNullOrEmpty(jsonValue))
+                    return item;
+
+                var jo = JObject.Parse(jsonValue);
+
+                foreach (var temp in jo)
+                {
+                    item.Add(temp.Key, temp.Value);
+                }
+                return item;
+            }
+            catch
+            {
+                return new Dictionary<string, object>();
+            }
+        }
+
+        public static List<Dictionary<string, object>> JsonToDics(string jsonValue)
+        {
+            try
+            {
+                var item = new List<Dictionary<string, object>>();
+
+                if (string.IsNullOrEmpty(jsonValue))
+                    return item;
+
+                var ja = JArray.Parse(jsonValue);
+
+                foreach (var jo in ja)
+                {
+                    item.Add(JsonToDic(jo.ToString()));
+                }
+
+                return item;
+            }
+            catch
+            {
+                return new List<Dictionary<string, object>>();
+            }
         }
     }
 }

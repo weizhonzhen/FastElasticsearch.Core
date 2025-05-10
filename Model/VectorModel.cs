@@ -33,8 +33,8 @@ namespace FastElasticsearch.Core.Model
     public enum OptionType
     {
         hnsw = 0,
-        int8_hnsw = 0,
-        flat = 0
+        int8_hnsw = 1,
+        flat = 2
     }
 
     public enum Similarity

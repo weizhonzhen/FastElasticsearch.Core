@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace FastElasticsearch.Core
 {
@@ -71,6 +70,28 @@ namespace FastElasticsearch.Core
 
         private object VectorParam(string vectorIndex, VectorQuery model)
         {
+            var keyWord = new Dictionary<string,object>();
+            //if (model.Analyzer!= Analyzer.standard)
+            {
+                if (model.Match.Count > 0)
+                {
+                    foreach (var item in model.Match)
+                    {
+                        var analyzeResponse = client.Indices.AnalyzeForAll<StringResponse>(
+                            PostData.Serializable(new { text = new[] { item.Value }, analyzer = model.Analyzer.ToString() }));
+                        if (analyzeResponse.Success)
+                        {
+                            var body = analyzeResponse.Body;
+                            if (elasticsearch.IsChinese(analyzeResponse.Body))
+                               body = Uri.UnescapeDataString(analyzeResponse.Body);
+                           
+                            var list = Dic.JsonToDics(Dic.JsonToDic(body).GetValue("tokens").ToString());
+                            keyWord.Add(item.Key, list.Select(a => a.GetValue("token").ToString()).ToList());
+                        }
+                    }
+                }
+            }
+
             var result = new object();
             var info = GetVectorInfo(vectorIndex);
 
@@ -94,10 +115,11 @@ namespace FastElasticsearch.Core
                 var filterDic = (IDictionary<string, object>)filterDyn;
                 foreach (var item in model.Match)
                 {
-                    filterDic[item.Key] = item.Value;
+                    var analyzerValue = keyWord.GetValue(item.Key) as List<string>;
+                    filterDic[item.Key] = analyzerValue ?? item.Value;
                 }
 
-                knnDic["filter"] = new { match_phrase = filterDyn };
+                knnDic["filter"] = new { terms = filterDyn };
             }
 
             knnDic["field"] = info.Name;

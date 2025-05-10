@@ -8,7 +8,7 @@ namespace FastElasticsearch.Core.Model
 
         public Dictionary<string, object> Match { get; set; } = new Dictionary<string, object>();
 
-        public double MachBoost { get; set; } = 0.6;
+        public double MachBoost { get; set; } = 0.4;
 
         public float[] Data { get; set; }
 
@@ -16,6 +16,15 @@ namespace FastElasticsearch.Core.Model
 
         public int NumCandidates { get; set; } = 100;
 
-        public double KnnBoost { get; set; } = 0.4;
+        public double KnnBoost { get; set; } = 0.6;
+
+        public Analyzer Analyzer { get; set; } = Analyzer.ik_smart;
+    }
+
+    public enum Analyzer
+    {
+        standard = 0,
+        ik_smart = 1,
+        ik_max_word = 2
     }
 }
