@@ -71,7 +71,7 @@ namespace FastElasticsearch.Core
         private object VectorParam(string vectorIndex, VectorQuery model)
         {
             var keyWord = new Dictionary<string,object>();
-            //if (model.Analyzer!= Analyzer.standard)
+            if (model.Analyzer!= Analyzer.standard)
             {
                 if (model.Match.Count > 0)
                 {
