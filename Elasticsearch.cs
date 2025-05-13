@@ -622,14 +622,17 @@ namespace FastElasticsearch.Core
             });
 
             if (aop != null)
-                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(properties) });
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { mappings = new { properties = properties } }) });
 
-            var result = new StringResponse();
+            var result = client.Indices.Exists<StringResponse>(GetIndex(index));
 
-            if (settings != null)
-                result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties } }));
-            else
-                result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties }, settings = settings }));
+            if (result != null && result.Success)
+            {
+                if (settings != null)
+                    result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties } }));
+                else
+                    result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties }, settings = settings }));
+            }
 
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -638,7 +641,7 @@ namespace FastElasticsearch.Core
                 aop.After(new AfterContext
                 {
                     Index = GetIndex(index),
-                    Dsl = JsonConvert.SerializeObject(new { query = new { match_all = new { } } }),
+                    Dsl = JsonConvert.SerializeObject(new { mappings = new { properties = properties } }),
                     Data = result,
                     IsSuccess = data.IsSuccess,
                     Exception = data.Exception
