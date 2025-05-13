@@ -70,8 +70,8 @@ namespace FastElasticsearch.Core
 
         private object VectorParam(string vectorIndex, VectorQuery model)
         {
-            var keyWord = new Dictionary<string,object>();
-            if (model.Analyzer!= Analyzer.standard)
+            var keyWord = new Dictionary<string, object>();
+            if (model.Analyzer != Analyzer.standard)
             {
                 if (model.Match.Count > 0)
                 {
@@ -83,8 +83,8 @@ namespace FastElasticsearch.Core
                         {
                             var body = analyzeResponse.Body;
                             if (elasticsearch.IsChinese(analyzeResponse.Body))
-                               body = Uri.UnescapeDataString(analyzeResponse.Body);
-                           
+                                body = Uri.UnescapeDataString(analyzeResponse.Body);
+
                             var list = Dic.JsonToDics(Dic.JsonToDic(body).GetValue("tokens").ToString());
                             keyWord.Add(item.Key, list.Select(a => a.GetValue("token").ToString()).ToList());
                         }
@@ -107,10 +107,10 @@ namespace FastElasticsearch.Core
                 var matchDic = (IDictionary<string, object>)matchDyn;
                 foreach (var item in model.Match)
                 {
-                    matchDic[item.Key] = new { query = item.Value ,boost = model.MachBoost};
+                    matchDic[item.Key] = new { query = item.Value, boost = model.MachBoost };
                 }
                 dic["match_phrase"] = matchDyn;
-                
+
                 dynamic filterDyn = new ExpandoObject();
                 var filterDic = (IDictionary<string, object>)filterDyn;
                 foreach (var item in model.Match)
@@ -128,7 +128,10 @@ namespace FastElasticsearch.Core
             knnDic["num_candidates"] = model.NumCandidates;
             knnDic["boost"] = model.KnnBoost;
 
-            result = new { knn = knnDyn, query = queryDyn };
+            //if (model.Rank.RankConstant != 0 && model.Rank.WindowSize != 0)
+            //    result = new { knn = knnDyn, query = queryDyn, rank = new { rrf = new { window_size = model.Rank.WindowSize, rank_constant = model.Rank.RankConstant } } };
+            //else
+                result = new { knn = knnDyn, query = queryDyn };
 
             return result;
         }

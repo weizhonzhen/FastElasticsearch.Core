@@ -76,7 +76,9 @@ namespace FastElasticsearch.Core
 
         EsResponse Update(string index, string _id, UpdateModel query);
 
-        EsResponse GetItem(string index,string _id);
+        EsResponse GetItem(string index, string _id);
+
+        EsResponse Create<T>(string index, Dictionary<string, object> settings = null);
     }
 
     public interface IElasticsearchVector

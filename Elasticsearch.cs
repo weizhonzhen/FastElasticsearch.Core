@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace FastElasticsearch.Core
@@ -191,7 +192,7 @@ namespace FastElasticsearch.Core
             }
 
             if (aop != null)
-                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param)});
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param) });
 
             var result = client.Bulk<StringResponse>(GetIndex(index), PostData.MultiJson(param), bulkParam);
             reponse.IsSuccess = result != null ? result.Success : false;
@@ -375,7 +376,7 @@ namespace FastElasticsearch.Core
             StringResponse stringResponse;
 
             if (aop != null)
-                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query, size = size, sort = sort })});
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(new { query = query, size = size, sort = sort }) });
 
             if (!string.IsNullOrEmpty(index))
                 stringResponse = client.Search<StringResponse>(GetIndex(index), PostData.Serializable(new { query = query, size = size, sort = sort }));
@@ -602,6 +603,46 @@ namespace FastElasticsearch.Core
             }
             else
                 data.Count = 0;
+
+            return data;
+        }
+
+        public EsResponse Create<T>(string index, Dictionary<string, object> settings = null)
+        {
+            var data = new EsResponse();
+            var properties = new Dictionary<string, object>();
+
+            typeof(T).GetProperties().ToList().ForEach(a =>
+            {
+                var column = a.GetCustomAttribute<ColumnAttribute>();
+                if (column != null)
+                {
+                    properties.Add(a.Name, new { type = column.type });
+                }
+            });
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(properties) });
+
+            var result = new StringResponse();
+
+            if (settings != null)
+                result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties } }));
+            else
+                result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties }, settings = settings }));
+
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(new { query = new { match_all = new { } } }),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
 
             return data;
         }

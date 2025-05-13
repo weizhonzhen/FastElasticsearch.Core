@@ -19,6 +19,8 @@ namespace FastElasticsearch.Core.Model
         public double KnnBoost { get; set; } = 0.6;
 
         public Analyzer Analyzer { get; set; } = Analyzer.ik_smart;
+
+        //public Rank Rank { get; set; } = new Rank();
     }
 
     public enum Analyzer
@@ -27,4 +29,10 @@ namespace FastElasticsearch.Core.Model
         ik_smart = 1,
         ik_max_word = 2
     }
+
+    //public class Rank
+    //{
+    //    public int WindowSize { get; set; } = 10;
+    //    public int RankConstant { get; set; } = 50;
+    //}
 }
