@@ -626,7 +626,7 @@ namespace FastElasticsearch.Core
 
             var result = client.Indices.Exists<StringResponse>(GetIndex(index));
 
-            if (result != null && result.Success)
+            if (result != null && !result.Success)
             {
                 if (settings != null)
                     result = client.Indices.Create<StringResponse>(GetIndex(index), PostData.Serializable(new { mappings = new { properties = properties } }));
