@@ -50,7 +50,12 @@ namespace Microsoft.Extensions.DependencyInjection
             var node = new List<Node>();
             config.Host.ForEach(a => { node.Add(new Node(new Uri(a))); });
             var pool = new StaticConnectionPool(node);
-            var conn = new ConnectionConfiguration(pool).EnableHttpCompression().ServerCertificateValidationCallback((sender, certificate, chain, sslPolicyErrors) => true);
+            var conn = new ConnectionConfiguration(pool).EnableHttpCompression()
+                            .ServerCertificateValidationCallback((sender, certificate, chain, sslPolicyErrors) => true)
+                            .RequestTimeout(new TimeSpan(0,5,0))
+                            .PingTimeout(TimeSpan.FromSeconds(3))
+                            .DeadTimeout(TimeSpan.FromMinutes(5));
+
             conn.BasicAuthentication(config.UserName, config.PassWord);
             var client = new ElasticLowLevelClient(conn);
             serviceCollection.AddSingleton(client);
