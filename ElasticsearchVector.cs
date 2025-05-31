@@ -116,10 +116,10 @@ namespace FastElasticsearch.Core
                 foreach (var item in model.Match)
                 {
                     var analyzerValue = keyWord.GetValue(item.Key) as List<string>;
-                    filterDic[item.Key] = analyzerValue ?? item.Value;
+                    filterDic[item.Key] = string.Join(" ", analyzerValue ?? item.Value);
                 }
 
-                knnDic["filter"] = new { terms = filterDyn };
+                knnDic["filter"] = new { match = filterDyn };
             }
 
             knnDic["field"] = info.Name;
