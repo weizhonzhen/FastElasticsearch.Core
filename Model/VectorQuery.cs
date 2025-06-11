@@ -20,6 +20,8 @@ namespace FastElasticsearch.Core.Model
 
         public Analyzer Analyzer { get; set; } = Analyzer.ik_smart;
 
+        public double Score { get; set; } = 4;
+
         //public Rank Rank { get; set; } = new Rank();
     }
 

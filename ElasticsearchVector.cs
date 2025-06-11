@@ -107,19 +107,20 @@ namespace FastElasticsearch.Core
                 var matchDic = (IDictionary<string, object>)matchDyn;
                 foreach (var item in model.Match)
                 {
-                    matchDic[item.Key] = new { query = item.Value, boost = model.MachBoost };
+                    var analyzerValue = keyWord.GetValue(item.Key) as List<string>;
+                    matchDic[item.Key] = new { query = analyzerValue == null ? item.Value : string.Join(" ", analyzerValue), boost = model.MachBoost };
                 }
-                dic["match_phrase"] = matchDyn;
+                dic["match"] = matchDyn;
 
                 dynamic filterDyn = new ExpandoObject();
                 var filterDic = (IDictionary<string, object>)filterDyn;
                 foreach (var item in model.Match)
                 {
                     var analyzerValue = keyWord.GetValue(item.Key) as List<string>;
-                    filterDic[item.Key] = string.Join(" ", analyzerValue ?? item.Value);
+                    filterDic[item.Key] = analyzerValue ?? item.Value;
                 }
 
-                knnDic["filter"] = new { match = filterDyn };
+                knnDic["filter"] = new { terms = filterDyn };
             }
 
             knnDic["field"] = info.Name;
@@ -131,7 +132,7 @@ namespace FastElasticsearch.Core
             //if (model.Rank.RankConstant != 0 && model.Rank.WindowSize != 0)
             //    result = new { knn = knnDyn, query = queryDyn, rank = new { rrf = new { window_size = model.Rank.WindowSize, rank_constant = model.Rank.RankConstant } } };
             //else
-                result = new { knn = knnDyn, query = queryDyn };
+            result = new { knn = knnDyn, query = queryDyn, size = model.NumCandidates};
 
             return result;
         }
@@ -248,6 +249,7 @@ namespace FastElasticsearch.Core
                     body = Uri.UnescapeDataString(stringResponse.Body);
 
                 var list = JsonConvert.DeserializeObject<EsResult>(body);
+                list.hits.hits = list.hits.hits.FindAll(a => a._score >= model.Score);
                 list.hits.hits.ForEach(a =>
                 {
                     a._source.Add("_id", a._id);
