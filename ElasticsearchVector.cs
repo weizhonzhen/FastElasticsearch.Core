@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace FastElasticsearch.Core
 {
-    public class ElasticsearchVector :IElasticsearchVector
+    public class ElasticsearchVector : IElasticsearchVector
     {
         private static string vectorKey = "vectorKey";
         private Elasticsearch elasticsearch = ServiceContext.Engine.Resolve<Elasticsearch>();
@@ -132,7 +132,7 @@ namespace FastElasticsearch.Core
             //if (model.Rank.RankConstant != 0 && model.Rank.WindowSize != 0)
             //    result = new { knn = knnDyn, query = queryDyn, rank = new { rrf = new { window_size = model.Rank.WindowSize, rank_constant = model.Rank.RankConstant } } };
             //else
-            result = new { knn = knnDyn, query = queryDyn, size = model.NumCandidates};
+            result = new { knn = knnDyn, query = queryDyn, size = model.NumCandidates };
 
             return result;
         }
@@ -184,19 +184,35 @@ namespace FastElasticsearch.Core
 
             dynamic dyn = new ExpandoObject();
             var dic = (IDictionary<string, object>)dyn;
-            dic[model.Name] = new
-            {
-                type = model.Type,
-                dims = model.Dims,
-                index = model.Index,
-                similarity = model.Similarity.ToString(),
-                index_options = new
+
+            if (model.IndexOption.Type == OptionType.bbq)
+                dic[model.Name] = new
                 {
-                    type = model.IndexOption.Type.ToString(),
-                    ef_construction = model.IndexOption.Ef_Construction,
-                    m=model.IndexOption.M
-                }
-            };
+                    type = model.Type,
+                    dims = model.Dims,
+                    index = model.Index,
+                    similarity = model.Similarity.ToString(),
+                    index_options = new
+                    {
+                        type = model.IndexOption.Type.ToString(),
+                        bits = 1,
+                        dynamic_quantization = true
+                    }
+                };
+            else
+                dic[model.Name] = new
+                {
+                    type = model.Type,
+                    dims = model.Dims,
+                    index = model.Index,
+                    similarity = model.Similarity.ToString(),
+                    index_options = new
+                    {
+                        type = model.IndexOption.Type.ToString(),
+                        ef_construction = model.IndexOption.Ef_Construction,
+                        m = model.IndexOption.M
+                    }
+                };
 
             foreach (var keyValue in model.Field)
             {
@@ -249,7 +265,7 @@ namespace FastElasticsearch.Core
                     body = Uri.UnescapeDataString(stringResponse.Body);
 
                 var list = JsonConvert.DeserializeObject<EsResult>(body);
-                list.hits.hits = list.hits.hits.FindAll(a => a._score >= model.Score);
+                //list.hits.hits = list.hits.hits.FindAll(a => a._score >= model.Score);
                 list.hits.hits.ForEach(a =>
                 {
                     a._source.Add("_id", a._id);
@@ -301,6 +317,24 @@ namespace FastElasticsearch.Core
                 });
             return data;
         }
+        public EsResponse DeleteVector(string vectorIndex, string id)
+        {
+            var data = new EsResponse();
+            if (aop != null)
+                aop.Before(new BeforeContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex) });
+
+            data = elasticsearch.Delete(vectorKey, new List<string> { id });
+
+            if (aop != null)
+                aop.After(new AfterContext
+                {
+                    IsVector = true,
+                    Index = elasticsearch.GetIndex(vectorIndex),
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
+            return data;
+        }
 
         public EsResponse QueryVector(List<string> vectorIndex, VectorQuery model)
         {
@@ -317,6 +351,31 @@ namespace FastElasticsearch.Core
             });
 
             return result;
+        }
+
+        public EsResponse Exists(string vectorIndex)
+        {
+            var data = new EsResponse();
+            var info = GetVectorInfo(vectorIndex);
+            
+            if (aop != null)
+                aop.Before(new BeforeContext { IsVector = true, Index = elasticsearch.GetIndex(vectorIndex)});
+
+            var result = client.Indices.Exists< StringResponse>(elasticsearch.GetIndex(vectorIndex));
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext
+                {
+                    IsVector = true,
+                    Index = elasticsearch.GetIndex(vectorIndex),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
+
+            return data;
         }
     }
 }

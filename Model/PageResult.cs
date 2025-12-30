@@ -5,7 +5,7 @@ namespace FastElasticsearch.Core.Model
 {
     public class PageResult
     {
-        public PageModel Page = new PageModel();
+        public PageModel Page { get; set; } = new PageModel();
 
         public List<Dictionary<string, object>> List { get; set; } = new List<Dictionary<string, object>>();
     }
@@ -27,6 +27,8 @@ namespace FastElasticsearch.Core.Model
         public bool IsSuccess { get; set; }
 
         public Exception Exception { get; set; }
+
+        public List<string> KeyWord { get; set; } = new List<string>();
 
         public PageResult PageResult { get; set; } = new PageResult();
 

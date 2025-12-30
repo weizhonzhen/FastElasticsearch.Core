@@ -14,13 +14,13 @@ namespace FastElasticsearch.Core.Model
 
         public int K { get; set; } = 10;
 
-        public int NumCandidates { get; set; } = 100;
+        public int NumCandidates { get; set; } = 50;
 
         public double KnnBoost { get; set; } = 0.6;
 
         public Analyzer Analyzer { get; set; } = Analyzer.ik_smart;
 
-        public double Score { get; set; } = 4;
+        //public double Score { get; set; } = 0.3;
 
         //public Rank Rank { get; set; } = new Rank();
     }

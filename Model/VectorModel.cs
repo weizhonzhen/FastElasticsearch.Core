@@ -34,7 +34,8 @@ namespace FastElasticsearch.Core.Model
     {
         hnsw = 0,
         int8_hnsw = 1,
-        flat = 2
+        flat = 2,
+        bbq = 3
     }
 
     public enum Similarity

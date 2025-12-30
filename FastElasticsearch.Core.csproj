@@ -5,7 +5,7 @@
 	  <TargetFramework>netstandard2.1</TargetFramework>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <PackageId>FastElasticsearch.Core</PackageId>
-	  <Version>1.0.2</Version>
+	  <Version>1.2.2</Version>
 	  <Authors>FastElasticsearch.Core</Authors>
 	  <Company>FastElasticsearch.Core</Company>
 	  <PackageProjectUrl>https://github.com/weizhonzhen/FastElasticsearch.Core</PackageProjectUrl>

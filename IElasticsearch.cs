@@ -79,6 +79,14 @@ namespace FastElasticsearch.Core
         EsResponse GetItem(string index, string _id);
 
         EsResponse Create<T>(string index, Dictionary<string, object> settings = null);
+
+        EsResponse AddList<T>(string index, List<T> list);
+
+        EsResponse Add<T>(string index, T model);
+        
+        bool Exists(string index);
+
+        EsResponse AnalyzeText(string text);
     }
 
     public interface IElasticsearchVector
@@ -87,10 +95,14 @@ namespace FastElasticsearch.Core
 
         EsResponse DeleteVector(string vectorIndex);
 
+        EsResponse DeleteVector(string vectorIndex,string id);
+
         EsResponse AddVectorData(string vectorIndex, VectorData model);
 
         EsResponse QueryVector(string vectorIndex, VectorQuery model);
 
         EsResponse QueryVector(List<string> vectorIndex, VectorQuery model);
+
+        EsResponse Exists(string vectorIndex);
     }
 }

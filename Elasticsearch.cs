@@ -169,6 +169,30 @@ namespace FastElasticsearch.Core
             return data;
         }
 
+        public EsResponse Add<T>(string index, T model)
+        {
+            var data = new EsResponse();
+            index = GetIndex(index);
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = index });
+
+            var param = new IndexRequestParameters { Refresh = Refresh.True };
+            var result = client.Index<StringResponse>(index, Guid.NewGuid().ToString(), PostData.Serializable(model), param);
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Data = result,
+                    IsSuccess = data.IsSuccess,
+                    Exception = data.Exception
+                });
+
+            return data;
+        }
+
         public EsResponse AddList(string index, List<Dictionary<string, object>> list)
         {
             var reponse = new EsResponse();
@@ -195,6 +219,36 @@ namespace FastElasticsearch.Core
                 aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param) });
 
             var result = client.Bulk<StringResponse>(GetIndex(index), PostData.MultiJson(param), bulkParam);
+            reponse.IsSuccess = result != null ? result.Success : false;
+            reponse.Exception = result?.OriginalException;
+
+            if (aop != null)
+                aop.After(new AfterContext
+                {
+                    Index = GetIndex(index),
+                    Dsl = JsonConvert.SerializeObject(param),
+                    Data = result,
+                    IsSuccess = reponse.IsSuccess,
+                    Exception = reponse.Exception
+                });
+
+            return reponse;
+        }
+
+        public EsResponse AddList<T>(string index, List<T> list)
+        {
+            var reponse = new EsResponse();
+            var bulkParam = new BulkRequestParameters { Refresh = Refresh.True };
+            var param = new List<dynamic>();
+            var data = new List<Dictionary<string, object>>();
+
+            if (list == null || list.Count == 0)
+                return reponse;
+
+            if (aop != null)
+                aop.Before(new BeforeContext { Index = GetIndex(index), Dsl = JsonConvert.SerializeObject(param) });
+
+            var result = client.Bulk<StringResponse>(GetIndex(index), PostData.Serializable<List<T>>(list), bulkParam);
             reponse.IsSuccess = result != null ? result.Success : false;
             reponse.Exception = result?.OriginalException;
 
@@ -588,7 +642,7 @@ namespace FastElasticsearch.Core
             var data = new EsResponse();
             StringResponse page;
             if (!string.IsNullOrEmpty(index))
-                page = client.Search<StringResponse>(GetIndex(index), PostData.Serializable(new { id = _id }));
+                page = client.Get<StringResponse>(GetIndex(index), _id);
             else
                 page = client.Search<StringResponse>(PostData.Empty);
 
@@ -597,9 +651,10 @@ namespace FastElasticsearch.Core
 
             if (page.Success)
             {
-                var list = JsonConvert.DeserializeObject<EsResult>(page.Body);
+                var list = JsonConvert.DeserializeObject<Hits>(page.Body);
 
-                data.Count = list.hits.total.value;
+                data.List.Add(list._source);
+                data.Count = 1;
             }
             else
                 data.Count = 0;
@@ -617,7 +672,14 @@ namespace FastElasticsearch.Core
                 var column = a.GetCustomAttribute<ColumnAttribute>();
                 if (column != null)
                 {
-                    properties.Add(a.Name, new { type = column.type });
+                    if (column.type == "date")
+                        properties.Add(a.Name, new
+                        {
+                            type = column.type,
+                            format = "yyyy-MM-dd HH:mm:ss || yyyy-MM-dd'T'HH:mm:ss'+08:00' || yyyy/MM/dd HH:mm:ss || yyyy/MM/dd'T'HH:mm:ss'+08:00'"
+                        });
+                    else
+                        properties.Add(a.Name, new { type = column.type });
                 }
             });
 
@@ -648,6 +710,31 @@ namespace FastElasticsearch.Core
                 });
 
             return data;
+        }
+
+        public bool Exists(string index)
+        {
+            var result = client.Indices.Exists<StringResponse>(GetIndex(index));
+            if (result != null && !result.Success)
+                return true;
+            else
+                return false;
+        }
+
+        public EsResponse AnalyzeText(string text)
+        {
+            var result = new EsResponse();
+            var analyzeResponse = client.Indices.AnalyzeForAll<StringResponse>(
+                            PostData.Serializable(new { text = new[] { text }, analyzer = Analyzer.ik_smart.ToString() }));
+            if (analyzeResponse.Success)
+            {
+                var body = analyzeResponse.Body;
+                if (IsChinese(analyzeResponse.Body))
+                    body = Uri.UnescapeDataString(analyzeResponse.Body);
+
+                result.KeyWord = Dic.JsonToDics(Dic.JsonToDic(body).GetValue("tokens").ToString()).Select(a => a.GetValue("token").ToString()).ToList();
+            }
+            return result;
         }
     }
 }
